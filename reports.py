@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 import os
 from datetime import datetime
+from openpyxl.styles import Font, PatternFill
 import pandas as pd
 
 class ReportG:
@@ -45,13 +46,16 @@ class ReportG:
         # Crear una hoja por cada fecha única con ventas
         for fecha, ventas in ventas_por_fecha.items():
             ws = wb.create_sheet(title=fecha)
+            for cell in ws["1:1"]:
+                        cell.fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")  # Color de fondo
+                        cell.font = Font(color="FFFFFF")  # Color de texto
             ws.append(['ID VENTA', 'FECHA INICIO', 'FECHA FIN', 'TOTAL', 'ID CLIENTE'])
             for venta in ventas:  # Agregar todas las ventas para esa fecha
                 ws.append(venta)
 
         # Guardar el archivo Excel
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        nombre_excel = f"reporte_ventas_{base_datos}_{timestamp}.xlsx"
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        nombre_excel = f"reporte_ventas_{base_datos}_{fecha_inicio.strftime('%Y-%m-%d')}_al_{fecha_fin.strftime('%Y-%m-%d')}.xlsx"
         ruta = os.path.join('reportes', nombre_excel)  # Ajusta esta ruta a tu estructura de carpetas
         wb.save(ruta)
 
