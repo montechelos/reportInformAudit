@@ -16,7 +16,7 @@ def mensaje():
     print("Hola, este endpoint consiste en consultar a una base de datos en especifico, para poder descargar un reporte en excel con la ayuda de la libreria openpyxl")
     return 'Hola, este endpoint consiste en consultar a una base de datos en especifico, para poder descargar un reporte en excel con la ayuda de la libreria openpyxl'
 # Ruta para validar las fechas y registrar el pago
-@app.route("/consultVentas", methods=["POST"])
+@app.route("/consultaVentas", methods=["POST"])
 def validarDb():
     data = request.get_json()
 
@@ -80,7 +80,7 @@ def download_file(filename):
 # Manejo de errores de página no encontrada
 @app.errorhandler(404)
 def not_found(error):
-    return jsonify({"status": "error", "message": "Página no encontrada"}), 404
+    return jsonify({"status": "error", "message": "Página no encontrada", "mensaje": mensaje()}), 404
 
 if __name__ == "__main__":
     mensaje()
