@@ -9,13 +9,13 @@ load_dotenv()
 def connect(db_name):
     """Conexión a la base de datos."""
     try:
-        # Intento establecer una conexión a la base de datos utilizando las credenciales almacenadas en las variables de entorno
+        # conexión a la db utilizando las credenciales almacenadas en las variables de entorno
         connection = pymysql.connect(
-            host=os.getenv('DB_HOST'),        # Host de la base de datos
-            user=os.getenv('DB_USER'),        # Usuario de la base de datos
-            password=os.getenv('DB_PASSWORD'), # Contraseña de la base de datos
-            database=db_name,                  # Nombre de la base de datos a la que me conecto
-            cursorclass=pymysql.cursors.DictCursor  # Utilizo un cursor que devuelve los resultados como diccionarios
+            host=os.getenv('DB_HOST'),        
+            user=os.getenv('DB_USER'),       
+            password=os.getenv('DB_PASSWORD'), 
+            database=db_name,                  
+            cursorclass=pymysql.cursors.DictCursor  
         )
         return connection
     except pymysql.err.OperationalError as e:
@@ -50,10 +50,10 @@ class Queries:
 
             while True:
                 # Utilizo fetchmany para obtener un lote de resultados
-                ventas = cursor.fetchmany(size=batch_size)
-                if not ventas:
+                promesas = cursor.fetchmany(size=batch_size)
+                if not promesas:
                     break  # Salgo del bucle si no hay más resultados
-                yield ventas  # Devuelvo los resultados como un generador
+                yield promesas  # Devuelvo los resultados como un generador
 
             # Cierro el cursor y la conexión a la base de datos
             cursor.close()
