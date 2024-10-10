@@ -1,58 +1,64 @@
 from openpyxl import Workbook
-import os
+from openpyxl.styles import PatternFill, Font
 from datetime import datetime
-import pandas as pd
+import os
+from collections import defaultdict
 
 class ReportG:
-
-    def generate_report_excel(self, data, generar_report, first_batch):
+   def generate_report_excel(self, data, generar_report, first_batch):
+        """Genera un reporte en Excel con los datos proporcionados."""
         fecha_inicio, fecha_fin, base_datos = data
 
-        # Crear el libro de trabajo
         wb = Workbook()
-        wb.remove(wb.active)  # Eliminar la hoja predeterminada 
+        wb.remove(wb.active)
 
-        # Diccionario para almacenar ventas por fecha
-        ventas_por_fecha = {}
+        promesas_por_fecha = defaultdict(list)
 
-        # Procesar el primer bloque
-        for venta in first_batch:
-            fecha = venta['fecha_inicio'].strftime('%Y-%m-%d')
-            if fecha not in ventas_por_fecha:
-                ventas_por_fecha[fecha] = []
-            ventas_por_fecha[fecha].append([
-                venta['id'],
-                venta['fecha_inicio'].strftime('%Y-%m-%d'),
-                venta['fecha_fin'].strftime('%Y-%m-%d'),
-                venta['total'],
-                venta['id_cliente']
-            ])
+        def procesar_promesas(promesas):
+            """Procesa las promesas y las agrupa por fecha."""
+            for promesa in promesas:
+                FECHA_ACUERDO = promesa['FECHA_ACUERDO'].strftime('%Y-%m-%d')
+                VALOR_ACUERDO = promesa['VALOR_ACUERDO']
+                VALOR_CUOTA = promesa.get('VALOR_CUOTA', 0)
 
-        # Procesar los siguientes bloques del generador
-        for todas_ventas in generar_report:
-            for venta in todas_ventas:
-                fecha = venta['fecha_inicio'].strftime('%Y-%m-%d')
-                if fecha not in ventas_por_fecha:
-                    ventas_por_fecha[fecha] = []
-                ventas_por_fecha[fecha].append([
-                    venta['id'],
-                    venta['fecha_inicio'].strftime('%Y-%m-%d'),
-                    venta['fecha_fin'].strftime('%Y-%m-%d'),
-                    venta['total'],
-                    venta['id_cliente']
+                promesas_por_fecha[FECHA_ACUERDO].append([
+                    promesa['ID'],    
+                    promesa['NOMBRE'],                     
+                    FECHA_ACUERDO,                     
+                    VALOR_ACUERDO,                     
+                    promesa['NUMERO_PROMESA'],         
+                    promesa['ESTADO_PROMESA'],         
+                    VALOR_CUOTA,                       
+                    promesa.get('ESTADO_CUOTA'),
+                    promesa['CUOTAS']        
                 ])
 
-        # Crear una hoja por cada fecha única con ventas
-        for fecha, ventas in ventas_por_fecha.items():
-            ws = wb.create_sheet(title=fecha)
-            ws.append(['ID VENTA', 'FECHA INICIO', 'FECHA FIN', 'TOTAL', 'ID CLIENTE'])
-            for venta in ventas:  # Agregar todas las ventas para esa fecha
-                ws.append(venta)
+        procesar_promesas(first_batch)
+        for lote_promesas in generar_report:
+            procesar_promesas(lote_promesas)
 
-        # Guardar el archivo Excel
+        os.makedirs('reportes', exist_ok=True)
+        fechas_ordenadas = sorted(promesas_por_fecha.keys())
+
+        total_registros = 0
+        for fecha in fechas_ordenadas:
+            promesas = promesas_por_fecha[fecha]
+            ws = wb.create_sheet(title=fecha)
+            headers = ['ID', 'MONRE','FECHA ACUERDO', 'VALOR ACUERDO', 'NÚMERO PROMESA', 'ESTADO PROMESA', 'VALOR CUOTA', 'ESTADO CUOTA', 'CUOTAS']
+            ws.append(headers)
+
+            for col in range(1, len(headers) + 1):
+                cell = ws.cell(row=1, column=col)
+                cell.fill = PatternFill(start_color='000000', end_color='000000', fill_type='solid')
+                cell.font = Font(color='FFFFFF', bold=True)
+
+            for promesa in promesas:
+                ws.append(promesa)
+                total_registros += 1
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        nombre_excel = f"reporte_ventas_{base_datos}_{timestamp}.xlsx"
-        ruta = os.path.join('reportes', nombre_excel)  # Ajusta esta ruta a tu estructura de carpetas
+        nombre_excel = f"reporte_{base_datos}_{timestamp}.xlsx"
+        ruta = os.path.join('reportes', nombre_excel)
         wb.save(ruta)
 
-        return nombre_excel  # Retornamos el nombre del archivo
+        return nombre_excel, total_registros
