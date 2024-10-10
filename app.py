@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory, url_for
 from datetime import datetime
-from queries import Queries
+from querys import Querys
 from reports import ReportG
 import os
 from dotenv import load_dotenv
@@ -56,7 +56,7 @@ def validarDb():
 
     # Realiza la consulta a la base de datos utilizando Queries
     try:
-        queries_ins = Queries()  # Instancia de la clase Queries
+        queries_ins = Querys()  # Instancia de la clase Queries
         generar_report = queries_ins.get_db_consult(arrdata)  # Llamar a la función que obtiene la consulta en la base de datos
         first_batch = next(generar_report, None)  # Obtener el primer lote de registros
         
